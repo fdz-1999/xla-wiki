@@ -1,0 +1,249 @@
+site_name: XLA 编译器知识库
+site_description: XLA (Accelerated Linear Algebra) 编译器中文技术文档
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换到暗色模式
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换到亮色模式
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - 首页: index.md
+  - 快速开始: 快速开始.md
+  - 项目概览:
+    - 概述: 项目概览/项目概览.md
+    - 核心概念: 项目概览/核心概念.md
+    - 架构总览: 项目概览/架构总览.md
+    - 支持的硬件平台: 项目概览/支持的硬件平台.md
+    - 框架集成: 项目概览/框架集成.md
+    - 快速开始: 项目概览/快速开始.md
+  - 架构设计:
+    - 概述: 架构设计/架构设计.md
+    - 编译器概述: 架构设计/编译器概述.md
+    - 前端接口层: 架构设计/前端接口层.md
+    - 中间表示层:
+      - 概述: 架构设计/中间表示层/中间表示层.md
+      - 构建器API: 架构设计/中间表示层/构建器API.md
+      - 序列化与格式: 架构设计/中间表示层/序列化与格式.md
+      - HLO指令系统:
+        - 概述: 架构设计/中间表示层/HLO指令系统/HLO指令系统.md
+        - 指令类型与分类: 架构设计/中间表示层/HLO指令系统/指令类型与分类.md
+        - 计算图结构: 架构设计/中间表示层/HLO指令系统/计算图结构.md
+        - 模块管理: 架构设计/中间表示层/HLO指令系统/模块管理.md
+        - 指令属性与元数据: 架构设计/中间表示层/HLO指令系统/指令属性与元数据.md
+      - MLIR集成架构:
+        - 概述: 架构设计/中间表示层/MLIR集成架构/MLIR集成架构.md
+        - MHLO方言: 架构设计/中间表示层/MLIR集成架构/MHLO方言.md
+        - StableHLO扩展: 架构设计/中间表示层/MLIR集成架构/StableHLO扩展.md
+        - MLIR转换工具: 架构设计/中间表示层/MLIR集成架构/MLIR转换工具.md
+        - MLIR框架基础: 架构设计/中间表示层/MLIR集成架构/MLIR框架基础.md
+    - 代码生成层:
+      - 概述: 架构设计/代码生成层/代码生成层.md
+      - LLVM代码生成: 架构设计/代码生成层/LLVM代码生成.md
+      - MLIR代码生成: 架构设计/代码生成层/MLIR代码生成.md
+      - 内核发射器:
+        - 概述: 架构设计/代码生成层/内核发射器/内核发射器.md
+        - 内核API构建器: 架构设计/代码生成层/内核发射器/内核API构建器.md
+        - 内核参数管理: 架构设计/代码生成层/内核发射器/内核参数管理.md
+        - 元素级发射器: 架构设计/代码生成层/内核发射器/元素级发射器.md
+        - 内存发射器: 架构设计/代码生成层/内核发射器/内存发射器.md
+        - 类型工具集: 架构设计/代码生成层/内核发射器/类型工具集.md
+        - 计算分割器: 架构设计/代码生成层/内核发射器/计算分割器.md
+      - 后端特定代码生成:
+        - 概述: 架构设计/代码生成层/后端特定代码生成/后端特定代码生成.md
+        - CPU代码生成: 架构设计/代码生成层/后端特定代码生成/CPU代码生成.md
+        - GPU代码生成: 架构设计/代码生成层/后端特定代码生成/GPU代码生成.md
+        - 解释器代码生成: 架构设计/代码生成层/后端特定代码生成/解释器代码生成.md
+    - 后端抽象层:
+      - 概述: 架构设计/后端抽象层/后端抽象层.md
+      - 后端接口设计: 架构设计/后端抽象层/后端接口设计.md
+      - PJRT运行时集成: 架构设计/后端抽象层/PJRT运行时集成.md
+      - 后端扩展机制: 架构设计/后端抽象层/后端扩展机制.md
+      - 主要后端实现:
+        - 概述: 架构设计/后端抽象层/主要后端实现/主要后端实现.md
+        - CPU后端: 架构设计/后端抽象层/主要后端实现/CPU后端.md
+        - GPU后端: 架构设计/后端抽象层/主要后端实现/GPU后端.md
+        - 解释器后端: 架构设计/后端抽象层/主要后端实现/解释器后端.md
+        - 性能分析器后端: 架构设计/后端抽象层/主要后端实现/性能分析器后端.md
+    - 编译流水线:
+      - 概述: 架构设计/编译流水线/编译流水线.md
+      - 目标无关优化阶段:
+        - 概述: 架构设计/编译流水线/目标无关优化阶段/目标无关优化阶段.md
+        - HLO简化器: 架构设计/编译流水线/目标无关优化阶段/HLO简化器.md
+        - 内存优化: 架构设计/编译流水线/目标无关优化阶段/内存优化.md
+        - 融合变换: 架构设计/编译流水线/目标无关优化阶段/融合变换.md
+        - 形状分析: 架构设计/编译流水线/目标无关优化阶段/形状分析.md
+        - 控制流变换: 架构设计/编译流水线/目标无关优化阶段/控制流变换.md
+      - 目标特定优化阶段:
+        - 概述: 架构设计/编译流水线/目标特定优化阶段/目标特定优化阶段.md
+        - GPU目标优化: 架构设计/编译流水线/目标特定优化阶段/GPU目标优化.md
+        - CPU目标优化: 架构设计/编译流水线/目标特定优化阶段/CPU目标优化.md
+        - 自动调优机制: 架构设计/编译流水线/目标特定优化阶段/自动调优机制.md
+        - 张量布局优化: 架构设计/编译流水线/目标特定优化阶段/张量布局优化.md
+      - 代码生成阶段:
+        - 概述: 架构设计/编译流水线/代码生成阶段/代码生成阶段.md
+        - MLIR代码生成: 架构设计/编译流水线/代码生成阶段/MLIR代码生成.md
+        - LLVM代码生成: 架构设计/编译流水线/代码生成阶段/LLVM代码生成.md
+        - 内核发射器: 架构设计/编译流水线/代码生成阶段/内核发射器.md
+        - 运行时集成: 架构设计/编译流水线/代码生成阶段/运行时集成.md
+    - 内存管理: 架构设计/内存管理.md
+    - 性能优化:
+      - 概述: 架构设计/性能优化/性能优化.md
+      - 操作融合优化: 架构设计/性能优化/操作融合优化.md
+      - 延迟隐藏调度: 架构设计/性能优化/延迟隐藏调度.md
+      - 布局分配优化: 架构设计/性能优化/布局分配优化.md
+      - 成本建模与预测: 架构设计/性能优化/成本建模与预测.md
+      - 内存优化策略: 架构设计/性能优化/内存优化策略.md
+      - 基准测试与性能分析: 架构设计/性能优化/基准测试与性能分析.md
+  - HLO与MLIR:
+    - 概述: HLO与MLIR/HLO与MLIR.md
+    - MLIR集成: HLO与MLIR/MLIR集成.md
+    - StableHLO规范: HLO与MLIR/StableHLO规范.md
+    - HLO调试工具: HLO与MLIR/HLO调试工具.md
+    - HLO中间表示:
+      - 概述: HLO与MLIR/HLO中间表示/HLO中间表示.md
+      - HLO序列化与反序列化: HLO与MLIR/HLO中间表示/HLO序列化与反序列化.md
+      - HLO指令系统:
+        - 概述: HLO与MLIR/HLO中间表示/HLO指令系统/HLO指令系统.md
+        - 基础算术与逻辑指令: HLO与MLIR/HLO中间表示/HLO指令系统/基础算术与逻辑指令.md
+        - 控制流指令: HLO与MLIR/HLO中间表示/HLO指令系统/控制流指令.md
+        - 数据移动指令: HLO与MLIR/HLO中间表示/HLO指令系统/数据移动指令.md
+        - 集体通信指令: HLO与MLIR/HLO中间表示/HLO指令系统/集体通信指令.md
+        - 专用计算指令: HLO与MLIR/HLO中间表示/HLO指令系统/专用计算指令.md
+      - HLO计算图:
+        - 概述: HLO与MLIR/HLO中间表示/HLO计算图/HLO计算图.md
+        - 计算图构建: HLO与MLIR/HLO中间表示/HLO计算图/计算图构建.md
+        - 图遍历与访问: HLO与MLIR/HLO中间表示/HLO计算图/图遍历与访问.md
+        - 模块管理: HLO与MLIR/HLO中间表示/HLO计算图/模块管理.md
+      - HLO构建器API:
+        - 概述: HLO与MLIR/HLO中间表示/HLO构建器API/HLO构建器API.md
+        - 基础构建器用法: HLO与MLIR/HLO中间表示/HLO构建器API/基础构建器用法.md
+        - 高级构建特性: HLO与MLIR/HLO中间表示/HLO构建器API/高级构建特性.md
+        - 构建器性能优化: HLO与MLIR/HLO中间表示/HLO构建器API/构建器性能优化.md
+    - HLO变换系统:
+      - 概述: HLO与MLIR/HLO变换系统/HLO变换系统.md
+      - HLO Pass管道: HLO与MLIR/HLO变换系统/HLO Pass管道.md
+      - HLO简化器: HLO与MLIR/HLO变换系统/HLO简化器.md
+      - HLO展开器: HLO与MLIR/HLO变换系统/HLO展开器.md
+      - HLO优化器: HLO与MLIR/HLO变换系统/HLO优化器.md
+      - HLO验证器: HLO与MLIR/HLO变换系统/HLO验证器.md
+      - 自定义HLO变换: HLO与MLIR/HLO变换系统/自定义HLO变换.md
+  - 后端系统:
+    - 概述: 后端系统/后端系统.md
+    - CPU后端: 后端系统/CPU后端.md
+    - TPU后端: 后端系统/TPU后端.md
+    - 解释器后端: 后端系统/解释器后端.md
+    - 后端开发指南: 后端系统/后端开发指南.md
+    - GPU后端:
+      - 概述: 后端系统/GPU后端/GPU后端.md
+      - CUDA后端: 后端系统/GPU后端/CUDA后端.md
+      - ROCm后端: 后端系统/GPU后端/ROCm后端.md
+      - SYCL后端: 后端系统/GPU后端/SYCL后端.md
+      - GPU运行时: 后端系统/GPU后端/GPU运行时.md
+  - PJRT API:
+    - 概述: PJRT API/PJRT API.md
+    - C API接口: PJRT API/C API接口.md
+    - 协议定义: PJRT API/协议定义.md
+    - 分布式执行: PJRT API/分布式执行.md
+    - 插件系统: PJRT API/插件系统.md
+    - Python绑定接口:
+      - 概述: PJRT API/Python绑定接口/Python绑定接口.md
+      - IFRT高级接口: PJRT API/Python绑定接口/IFRT高级接口.md
+      - PJRT-IFRT绑定接口: PJRT API/Python绑定接口/PJRT-IFRT绑定接口.md
+      - Python API使用示例: PJRT API/Python绑定接口/Python API使用示例.md
+  - Python接口:
+    - 概述: Python接口/Python接口.md
+    - Python客户端API: Python接口/Python客户端API.md
+    - IFRT接口: Python接口/IFRT接口.md
+    - PJRT集成: Python接口/PJRT集成.md
+    - 框架绑定: Python接口/框架绑定.md
+    - 类型与形状系统: Python接口/类型与形状系统.md
+  - 编译优化:
+    - 概述: 编译优化/编译优化.md
+    - 编译管道: 编译优化/编译管道.md
+    - 性能分析: 编译优化/性能分析.md
+    - HLO变换系统:
+      - 概述: 编译优化/HLO变换系统/HLO变换系统.md
+      - HLO简化器: 编译优化/HLO变换系统/HLO简化器.md
+      - HLO展开器: 编译优化/HLO变换系统/HLO展开器.md
+      - HLO变换核心: 编译优化/HLO变换系统/HLO变换核心.md
+      - HLO变换流水线: 编译优化/HLO变换系统/HLO变换流水线.md
+    - 代码生成器:
+      - 概述: 编译优化/代码生成器/代码生成器.md
+      - LLVM IR生成: 编译优化/代码生成器/LLVM IR生成.md
+      - MLIR转换: 编译优化/代码生成器/MLIR转换.md
+      - 内在函数: 编译优化/代码生成器/内在函数.md
+      - 平铺系统: 编译优化/代码生成器/平铺系统.md
+      - 内核发射器:
+        - 概述: 编译优化/代码生成器/内核发射器/内核发射器.md
+        - 元素级发射器: 编译优化/代码生成器/内核发射器/元素级发射器.md
+        - 循环发射器: 编译优化/代码生成器/内核发射器/循环发射器.md
+        - 融合发射器: 编译优化/代码生成器/内核发射器/融合发射器.md
+        - 内存发射器: 编译优化/代码生成器/内核发射器/内存发射器.md
+    - 后端优化:
+      - 概述: 编译优化/后端优化/后端优化.md
+      - CPU后端优化: 编译优化/后端优化/CPU后端优化.md
+      - GPU后端优化: 编译优化/后端优化/GPU后端优化.md
+      - 内存空间优化: 编译优化/后端优化/内存空间优化.md
+      - 后端扩展开发: 编译优化/后端优化/后端扩展开发.md
+  - 开发工具:
+    - 概述: 开发工具/开发工具.md
+    - 调试工具: 开发工具/调试工具.md
+    - 测试框架: 开发工具/测试框架.md
+    - 性能分析工具: 开发工具/性能分析工具.md
+    - 构建系统: 开发工具/构建系统.md
+  - 故障排除:
+    - 概述: 故障排除/故障排除.md
+    - 错误代码参考: 故障排除/错误代码参考.md
+    - 内存管理与优化: 故障排除/内存管理与优化.md
+    - 性能问题诊断: 故障排除/性能问题诊断.md
+    - 常见问题解答: 故障排除/常见问题解答.md
+    - 调试工具与技术:
+      - 概述: 故障排除/调试工具与技术/调试工具与技术.md
+      - HLO调试工具: 故障排除/调试工具与技术/HLO调试工具.md
+      - 性能分析工具: 故障排除/调试工具与技术/性能分析工具.md
+      - 分布式调试技术: 故障排除/调试工具与技术/分布式调试技术.md
+      - 调试工作流程: 故障排除/调试工具与技术/调试工作流程.md
+  - 贡献指南: 贡献指南.md
