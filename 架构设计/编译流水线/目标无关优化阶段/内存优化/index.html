@@ -1,0 +1,8049 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="XLA (Accelerated Linear Algebra) 编译器中文技术文档">
+      
+      
+      
+      
+        <link rel="prev" href="../HLO%E7%AE%80%E5%8C%96%E5%99%A8/">
+      
+      
+        <link rel="next" href="../%E8%9E%8D%E5%90%88%E5%8F%98%E6%8D%A2/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>内存优化 - XLA 编译器知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../.." title="XLA 编译器知识库" class="md-header__button md-logo" aria-label="XLA 编译器知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            XLA 编译器知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              内存优化
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到暗色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到暗色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到亮色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到亮色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  快速开始
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/" class="md-tabs__link">
+          
+  
+  
+  项目概览
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" class="md-tabs__link">
+          
+  
+  
+  架构设计
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%8EMLIR/" class="md-tabs__link">
+          
+  
+  
+  HLO与MLIR
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/" class="md-tabs__link">
+          
+  
+  
+  后端系统
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../PJRT%20API/PJRT%20API/" class="md-tabs__link">
+          
+  
+  
+  PJRT API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../Python%E6%8E%A5%E5%8F%A3/Python%E6%8E%A5%E5%8F%A3/" class="md-tabs__link">
+          
+  
+  
+  Python接口
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/" class="md-tabs__link">
+          
+  
+  
+  编译优化
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/" class="md-tabs__link">
+          
+  
+  
+  开发工具
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/" class="md-tabs__link">
+          
+  
+  
+  故障排除
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  贡献指南
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="XLA 编译器知识库" class="md-nav__button md-logo" aria-label="XLA 编译器知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    XLA 编译器知识库
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速开始
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    项目概览
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    项目概览
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    核心概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    架构总览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E6%94%AF%E6%8C%81%E7%9A%84%E7%A1%AC%E4%BB%B6%E5%B9%B3%E5%8F%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    支持的硬件平台
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E6%A1%86%E6%9E%B6%E9%9B%86%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    框架集成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速开始
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    架构设计
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    架构设计
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E7%BC%96%E8%AF%91%E5%99%A8%E6%A6%82%E8%BF%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编译器概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%89%8D%E7%AB%AF%E6%8E%A5%E5%8F%A3%E5%B1%82/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    前端接口层
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    中间表示层
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    中间表示层
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/%E6%9E%84%E5%BB%BA%E5%99%A8API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    构建器API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E6%A0%BC%E5%BC%8F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    序列化与格式
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4_4" id="__nav_4_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO指令系统
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO指令系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E6%8C%87%E4%BB%A4%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%88%86%E7%B1%BB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    指令类型与分类
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E8%AE%A1%E7%AE%97%E5%9B%BE%E7%BB%93%E6%9E%84/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    计算图结构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E6%A8%A1%E5%9D%97%E7%AE%A1%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    模块管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E6%8C%87%E4%BB%A4%E5%B1%9E%E6%80%A7%E4%B8%8E%E5%85%83%E6%95%B0%E6%8D%AE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    指令属性与元数据
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4_5" id="__nav_4_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR集成架构
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MLIR集成架构
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/MLIR%E9%9B%86%E6%88%90%E6%9E%B6%E6%9E%84/MLIR%E9%9B%86%E6%88%90%E6%9E%B6%E6%9E%84/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/MLIR%E9%9B%86%E6%88%90%E6%9E%B6%E6%9E%84/MHLO%E6%96%B9%E8%A8%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MHLO方言
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/MLIR%E9%9B%86%E6%88%90%E6%9E%B6%E6%9E%84/StableHLO%E6%89%A9%E5%B1%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StableHLO扩展
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/MLIR%E9%9B%86%E6%88%90%E6%9E%B6%E6%9E%84/MLIR%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR转换工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA%E5%B1%82/MLIR%E9%9B%86%E6%88%90%E6%9E%B6%E6%9E%84/MLIR%E6%A1%86%E6%9E%B6%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR框架基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    代码生成层
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    代码生成层
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/LLVM%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLVM代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/MLIR%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5_4" id="__nav_4_5_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内核发射器
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    内核发射器
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%86%85%E6%A0%B8API%E6%9E%84%E5%BB%BA%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内核API构建器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%82%E6%95%B0%E7%AE%A1%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内核参数管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%85%83%E7%B4%A0%E7%BA%A7%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    元素级发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%86%85%E5%AD%98%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E7%B1%BB%E5%9E%8B%E5%B7%A5%E5%85%B7%E9%9B%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    类型工具集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E8%AE%A1%E7%AE%97%E5%88%86%E5%89%B2%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    计算分割器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5_5" id="__nav_4_5_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端特定代码生成
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    后端特定代码生成
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%90%8E%E7%AB%AF%E7%89%B9%E5%AE%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/%E5%90%8E%E7%AB%AF%E7%89%B9%E5%AE%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%90%8E%E7%AB%AF%E7%89%B9%E5%AE%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/CPU%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%90%8E%E7%AB%AF%E7%89%B9%E5%AE%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/GPU%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%B1%82/%E5%90%8E%E7%AB%AF%E7%89%B9%E5%AE%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/%E8%A7%A3%E9%87%8A%E5%99%A8%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    解释器代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端抽象层
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    后端抽象层
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E5%90%8E%E7%AB%AF%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端接口设计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/PJRT%E8%BF%90%E8%A1%8C%E6%97%B6%E9%9B%86%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PJRT运行时集成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E5%90%8E%E7%AB%AF%E6%89%A9%E5%B1%95%E6%9C%BA%E5%88%B6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端扩展机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_6_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6_5" id="__nav_4_6_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    主要后端实现
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_6_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    主要后端实现
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E4%B8%BB%E8%A6%81%E5%90%8E%E7%AB%AF%E5%AE%9E%E7%8E%B0/%E4%B8%BB%E8%A6%81%E5%90%8E%E7%AB%AF%E5%AE%9E%E7%8E%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E4%B8%BB%E8%A6%81%E5%90%8E%E7%AB%AF%E5%AE%9E%E7%8E%B0/CPU%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E4%B8%BB%E8%A6%81%E5%90%8E%E7%AB%AF%E5%AE%9E%E7%8E%B0/GPU%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E4%B8%BB%E8%A6%81%E5%90%8E%E7%AB%AF%E5%AE%9E%E7%8E%B0/%E8%A7%A3%E9%87%8A%E5%99%A8%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    解释器后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%90%8E%E7%AB%AF%E6%8A%BD%E8%B1%A1%E5%B1%82/%E4%B8%BB%E8%A6%81%E5%90%8E%E7%AB%AF%E5%AE%9E%E7%8E%B0/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E5%99%A8%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    性能分析器后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编译流水线
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    编译流水线
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E7%BC%96%E8%AF%91%E6%B5%81%E6%B0%B4%E7%BA%BF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_7_2" id="__nav_4_7_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    目标无关优化阶段
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_7_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    目标无关优化阶段
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E7%9B%AE%E6%A0%87%E6%97%A0%E5%85%B3%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../HLO%E7%AE%80%E5%8C%96%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO简化器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存优化
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        目录
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        简介
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        项目结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心组件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        架构总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        详细组件分析
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="详细组件分析">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#amemory-space-propagation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件A：内存空间传播（Memory Space Propagation）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bmemory-scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件B：内存调度器（Memory Scheduler）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coptimize-inputoutput-buffer-alias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件C：输入输出缓冲区别名优化（Optimize Input/Output Buffer Alias）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dconvert-memory-placement-to-internal-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件D：内存放置注解转换（Convert Memory Placement to Internal Annotations）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件E：运行时内存管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fcompiled-memory-stats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件F：编译后内存统计（Compiled Memory Stats）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        依赖关系分析
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        性能考量
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        故障排查指南
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        结论
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E8%9E%8D%E5%90%88%E5%8F%98%E6%8D%A2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    融合变换
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%BD%A2%E7%8A%B6%E5%88%86%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    形状分析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E6%8E%A7%E5%88%B6%E6%B5%81%E5%8F%98%E6%8D%A2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    控制流变换
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_7_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7_3" id="__nav_4_7_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    目标特定优化阶段
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_7_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    目标特定优化阶段
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E7%9B%AE%E6%A0%87%E7%89%B9%E5%AE%9A%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/%E7%9B%AE%E6%A0%87%E7%89%B9%E5%AE%9A%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E7%9B%AE%E6%A0%87%E7%89%B9%E5%AE%9A%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/GPU%E7%9B%AE%E6%A0%87%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU目标优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E7%9B%AE%E6%A0%87%E7%89%B9%E5%AE%9A%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/CPU%E7%9B%AE%E6%A0%87%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU目标优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E7%9B%AE%E6%A0%87%E7%89%B9%E5%AE%9A%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/%E8%87%AA%E5%8A%A8%E8%B0%83%E4%BC%98%E6%9C%BA%E5%88%B6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    自动调优机制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E7%9B%AE%E6%A0%87%E7%89%B9%E5%AE%9A%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5/%E5%BC%A0%E9%87%8F%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    张量布局优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_7_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7_4" id="__nav_4_7_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    代码生成阶段
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_7_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    代码生成阶段
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E9%98%B6%E6%AE%B5/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E9%98%B6%E6%AE%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E9%98%B6%E6%AE%B5/MLIR%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E9%98%B6%E6%AE%B5/LLVM%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLVM代码生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E9%98%B6%E6%AE%B5/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内核发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E9%98%B6%E6%AE%B5/%E8%BF%90%E8%A1%8C%E6%97%B6%E9%9B%86%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    运行时集成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    性能优化
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    性能优化
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E6%93%8D%E4%BD%9C%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    操作融合优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E5%BB%B6%E8%BF%9F%E9%9A%90%E8%97%8F%E8%B0%83%E5%BA%A6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    延迟隐藏调度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E5%B8%83%E5%B1%80%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    布局分配优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E6%88%90%E6%9C%AC%E5%BB%BA%E6%A8%A1%E4%B8%8E%E9%A2%84%E6%B5%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    成本建模与预测
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存优化策略
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95%E4%B8%8E%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    基准测试与性能分析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO与MLIR
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO与MLIR
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%8EMLIR/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/MLIR%E9%9B%86%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR集成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/StableHLO%E8%A7%84%E8%8C%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StableHLO规范
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO调试工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO中间表示
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO中间表示
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO序列化与反序列化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_5_3" id="__nav_5_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO指令系统
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO指令系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E5%9F%BA%E7%A1%80%E7%AE%97%E6%9C%AF%E4%B8%8E%E9%80%BB%E8%BE%91%E6%8C%87%E4%BB%A4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    基础算术与逻辑指令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E6%8E%A7%E5%88%B6%E6%B5%81%E6%8C%87%E4%BB%A4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    控制流指令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E6%95%B0%E6%8D%AE%E7%A7%BB%E5%8A%A8%E6%8C%87%E4%BB%A4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据移动指令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E9%9B%86%E4%BD%93%E9%80%9A%E4%BF%A1%E6%8C%87%E4%BB%A4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    集体通信指令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%8C%87%E4%BB%A4%E7%B3%BB%E7%BB%9F/%E4%B8%93%E7%94%A8%E8%AE%A1%E7%AE%97%E6%8C%87%E4%BB%A4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    专用计算指令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_5_4" id="__nav_5_5_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO计算图
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO计算图
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E8%AE%A1%E7%AE%97%E5%9B%BE/HLO%E8%AE%A1%E7%AE%97%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E8%AE%A1%E7%AE%97%E5%9B%BE/%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9E%84%E5%BB%BA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    计算图构建
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E8%AE%A1%E7%AE%97%E5%9B%BE/%E5%9B%BE%E9%81%8D%E5%8E%86%E4%B8%8E%E8%AE%BF%E9%97%AE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    图遍历与访问
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E8%AE%A1%E7%AE%97%E5%9B%BE/%E6%A8%A1%E5%9D%97%E7%AE%A1%E7%90%86/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    模块管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_5_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_5_5" id="__nav_5_5_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO构建器API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_5_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_5_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO构建器API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%9E%84%E5%BB%BA%E5%99%A8API/HLO%E6%9E%84%E5%BB%BA%E5%99%A8API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%9E%84%E5%BB%BA%E5%99%A8API/%E5%9F%BA%E7%A1%80%E6%9E%84%E5%BB%BA%E5%99%A8%E7%94%A8%E6%B3%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    基础构建器用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%9E%84%E5%BB%BA%E5%99%A8API/%E9%AB%98%E7%BA%A7%E6%9E%84%E5%BB%BA%E7%89%B9%E6%80%A7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    高级构建特性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E4%B8%AD%E9%97%B4%E8%A1%A8%E7%A4%BA/HLO%E6%9E%84%E5%BB%BA%E5%99%A8API/%E6%9E%84%E5%BB%BA%E5%99%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    构建器性能优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_6" id="__nav_5_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO变换系统
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO变换系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%20Pass%E7%AE%A1%E9%81%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO Pass管道
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E7%AE%80%E5%8C%96%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO简化器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E5%B1%95%E5%BC%80%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO展开器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E4%BC%98%E5%8C%96%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO优化器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E9%AA%8C%E8%AF%81%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO验证器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../HLO%E4%B8%8EMLIR/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/%E8%87%AA%E5%AE%9A%E4%B9%89HLO%E5%8F%98%E6%8D%A2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    自定义HLO变换
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端系统
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    后端系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/CPU%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/TPU%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TPU后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/%E8%A7%A3%E9%87%8A%E5%99%A8%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    解释器后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端开发指南
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_6" id="__nav_6_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU后端
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    GPU后端
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/GPU%E5%90%8E%E7%AB%AF/GPU%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/GPU%E5%90%8E%E7%AB%AF/CUDA%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CUDA后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/GPU%E5%90%8E%E7%AB%AF/ROCm%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ROCm后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/GPU%E5%90%8E%E7%AB%AF/SYCL%E5%90%8E%E7%AB%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SYCL后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%90%8E%E7%AB%AF%E7%B3%BB%E7%BB%9F/GPU%E5%90%8E%E7%AB%AF/GPU%E8%BF%90%E8%A1%8C%E6%97%B6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU运行时
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PJRT API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    PJRT API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/PJRT%20API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/C%20API%E6%8E%A5%E5%8F%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C API接口
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/%E5%8D%8F%E8%AE%AE%E5%AE%9A%E4%B9%89/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    协议定义
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/%E5%88%86%E5%B8%83%E5%BC%8F%E6%89%A7%E8%A1%8C/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分布式执行
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/%E6%8F%92%E4%BB%B6%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    插件系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_6" id="__nav_7_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python绑定接口
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python绑定接口
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/Python%E7%BB%91%E5%AE%9A%E6%8E%A5%E5%8F%A3/Python%E7%BB%91%E5%AE%9A%E6%8E%A5%E5%8F%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/Python%E7%BB%91%E5%AE%9A%E6%8E%A5%E5%8F%A3/IFRT%E9%AB%98%E7%BA%A7%E6%8E%A5%E5%8F%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IFRT高级接口
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/Python%E7%BB%91%E5%AE%9A%E6%8E%A5%E5%8F%A3/PJRT-IFRT%E7%BB%91%E5%AE%9A%E6%8E%A5%E5%8F%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PJRT-IFRT绑定接口
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../PJRT%20API/Python%E7%BB%91%E5%AE%9A%E6%8E%A5%E5%8F%A3/Python%20API%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API使用示例
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python接口
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python接口
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../Python%E6%8E%A5%E5%8F%A3/Python%E6%8E%A5%E5%8F%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../Python%E6%8E%A5%E5%8F%A3/Python%E5%AE%A2%E6%88%B7%E7%AB%AFAPI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python客户端API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../Python%E6%8E%A5%E5%8F%A3/IFRT%E6%8E%A5%E5%8F%A3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IFRT接口
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../Python%E6%8E%A5%E5%8F%A3/PJRT%E9%9B%86%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PJRT集成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../Python%E6%8E%A5%E5%8F%A3/%E6%A1%86%E6%9E%B6%E7%BB%91%E5%AE%9A/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    框架绑定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../Python%E6%8E%A5%E5%8F%A3/%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%BD%A2%E7%8A%B6%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    类型与形状系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编译优化
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    编译优化
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E7%BC%96%E8%AF%91%E7%AE%A1%E9%81%93/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编译管道
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    性能分析
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_4" id="__nav_9_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO变换系统
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HLO变换系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E7%AE%80%E5%8C%96%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO简化器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E5%B1%95%E5%BC%80%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO展开器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E5%8F%98%E6%8D%A2%E6%A0%B8%E5%BF%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO变换核心
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/HLO%E5%8F%98%E6%8D%A2%E7%B3%BB%E7%BB%9F/HLO%E5%8F%98%E6%8D%A2%E6%B5%81%E6%B0%B4%E7%BA%BF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO变换流水线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_5" id="__nav_9_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    代码生成器
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    代码生成器
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/LLVM%20IR%E7%94%9F%E6%88%90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLVM IR生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/MLIR%E8%BD%AC%E6%8D%A2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLIR转换
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%86%85%E5%9C%A8%E5%87%BD%E6%95%B0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内在函数
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%B9%B3%E9%93%BA%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    平铺系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9_5_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_5_6" id="__nav_9_5_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内核发射器
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_9_5_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_5_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    内核发射器
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%85%83%E7%B4%A0%E7%BA%A7%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    元素级发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%BE%AA%E7%8E%AF%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    循环发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E8%9E%8D%E5%90%88%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    融合发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/%E5%86%85%E6%A0%B8%E5%8F%91%E5%B0%84%E5%99%A8/%E5%86%85%E5%AD%98%E5%8F%91%E5%B0%84%E5%99%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存发射器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_6" id="__nav_9_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端优化
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    后端优化
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/CPU%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU后端优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/GPU%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU后端优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存空间优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/%E5%90%8E%E7%AB%AF%E6%89%A9%E5%B1%95%E5%BC%80%E5%8F%91/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端扩展开发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发工具
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    开发工具
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    调试工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    测试框架
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    性能分析工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    构建系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    故障排除
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    故障排除
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E9%94%99%E8%AF%AF%E4%BB%A3%E7%A0%81%E5%8F%82%E8%80%83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    错误代码参考
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E4%BC%98%E5%8C%96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    内存管理与优化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    性能问题诊断
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E8%A7%A3%E7%AD%94/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    常见问题解答
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_11_6" id="__nav_11_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    调试工具与技术
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_11_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    调试工具与技术
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%8A%80%E6%9C%AF/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%8A%80%E6%9C%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%8A%80%E6%9C%AF/HLO%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HLO调试工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%8A%80%E6%9C%AF/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    性能分析工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%8A%80%E6%9C%AF/%E5%88%86%E5%B8%83%E5%BC%8F%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分布式调试技术
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4/%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%8A%80%E6%9C%AF/%E8%B0%83%E8%AF%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    调试工作流程
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    贡献指南
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        目录
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        简介
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        项目结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心组件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        架构总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        详细组件分析
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="详细组件分析">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#amemory-space-propagation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件A：内存空间传播（Memory Space Propagation）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bmemory-scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件B：内存调度器（Memory Scheduler）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coptimize-inputoutput-buffer-alias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件C：输入输出缓冲区别名优化（Optimize Input/Output Buffer Alias）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dconvert-memory-placement-to-internal-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件D：内存放置注解转换（Convert Memory Placement to Internal Annotations）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件E：运行时内存管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fcompiled-memory-stats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        组件F：编译后内存统计（Compiled Memory Stats）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        依赖关系分析
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        性能考量
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        故障排查指南
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        结论
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        附录
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="_1">内存优化<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p><cite>
+<strong>本文引用的文件</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc">xla/pjrt/compiled_memory_stats.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc">xla/backends/gpu/runtime/host_memory_pool.cc</a>
+- <a href="file://xla/hlo/analysis/hlo_alias_analysis.cc">xla/hlo/analysis/hlo_alias_analysis.cc</a>
+- <a href="file://xla/hlo/analysis/alias_info.cc">xla/hlo/analysis/alias_info.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a>
+- <a href="file://xla/service/heap_simulator/heap_simulator.h">xla/service/heap_simulator/heap_simulator.h</a>
+</cite></p>
+<h2 id="_2">目录<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#简介">简介</a></li>
+<li><a href="#项目结构">项目结构</a></li>
+<li><a href="#核心组件">核心组件</a></li>
+<li><a href="#架构总览">架构总览</a></li>
+<li><a href="#详细组件分析">详细组件分析</a></li>
+<li><a href="#依赖关系分析">依赖关系分析</a></li>
+<li><a href="#性能考量">性能考量</a></li>
+<li><a href="#故障排查指南">故障排查指南</a></li>
+<li><a href="#结论">结论</a></li>
+<li><a href="#附录">附录</a></li>
+</ol>
+<h2 id="_3">简介<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>本文件系统性阐述XLA在HLO（High-Level Optimizer）层面的内存优化机制与实现，重点覆盖以下方面：
+- 内存空间传播算法：确保形状布局中的内存空间一致性，避免跨内存域的数据不一致。
+- 缓冲区分配策略：通过点集分析与别名分析，识别可复用与可别名的缓冲区，降低峰值内存占用。
+- 复制消除技术：基于别名信息与输入输出别名配置，消除不必要的拷贝与临时缓冲区。
+- 生命周期调度：以贪心列表调度为核心，结合点集分析与堆模拟器估算峰值内存，指导指令执行顺序。
+- 内存布局与池化：CPU侧连续段内存管理器与GPU主机内存池，提升内存分配效率与对齐。</p>
+<p>本文件同时提供HLO优化前后的示意流程与图示，帮助读者理解内存优化如何减少设备内存占用并提升访问效率，以及对后续代码生成的影响。</p>
+<h2 id="_4">项目结构<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>围绕内存优化的关键代码主要分布在如下模块：
+- HLO变换层：内存空间传播、内存放置注解转换、内存调度与别名优化。
+- 分析层：别名分析、点集分析、别名信息维护。
+- 后端运行时：CPU连续段内存管理器、GPU主机内存池。
+- PJRT：编译后内存统计，区分设备/主机、参数/输出/临时与别名缓冲区。</p>
+<pre class="mermaid"><code>graph TB
+subgraph "HLO变换层"
+MSP["内存空间传播&lt;br/&gt;memory_space_propagation.cc"]
+MPA["内存放置注解转换&lt;br/&gt;convert_memory_placement_to_internal_annotations.cc"]
+HMS["内存调度器&lt;br/&gt;hlo_memory_scheduler.cc"]
+OIOA["输入输出缓冲区别名优化&lt;br/&gt;optimize_input_output_buffer_alias.cc"]
+end
+subgraph "分析层"
+HAA["Hlo别名分析&lt;br/&gt;hlo_alias_analysis.cc"]
+AI["别名信息&lt;br/&gt;alias_info.cc"]
+end
+subgraph "后端运行时"
+CSM["CPU连续段内存管理器&lt;br/&gt;contiguous_section_memory_manager.cc"]
+HMP["GPU主机内存池&lt;br/&gt;host_memory_pool.cc"]
+end
+subgraph "PJRT"
+CMS["编译内存统计&lt;br/&gt;compiled_memory_stats.cc"]
+end
+MSP --&gt; HAA
+HMS --&gt; HAA
+HMS --&gt; AI
+MPA --&gt; HAA
+OIOA --&gt; HAA
+CSM --&gt; |"内存对齐/分配"| CPU["CPU执行路径"]
+HMP --&gt; |"主机内存复用"| GPU["GPU执行路径"]
+CMS --&gt; |"统计设备/主机/别名"| 统计["内存报告"]</code></pre>
+<p><strong>图表来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a>
+- <a href="file://xla/hlo/analysis/hlo_alias_analysis.cc">xla/hlo/analysis/hlo_alias_analysis.cc</a>
+- <a href="file://xla/hlo/analysis/alias_info.cc">xla/hlo/analysis/alias_info.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc#L34-L99">xla/pjrt/compiled_memory_stats.cc</a></p>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc#L34-L99">xla/pjrt/compiled_memory_stats.cc</a></p>
+<h2 id="_5">核心组件<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ul>
+<li>内存空间传播（Memory Space Propagation）</li>
+<li>在模块内构建数据流分析，遍历参数、根节点、融合输入/输出等叶形状，将源形状的内存空间与拆分配置传播到目标形状布局，保证一致性。</li>
+<li>支持动态更新切片、融合嵌套场景下的跨层级传播。</li>
+<li>内存调度器（Memory Scheduler）</li>
+<li>基于点集分析与别名分析，采用贪心列表调度优先释放大缓冲区并定义小输出的指令序列，最小化峰值内存。</li>
+<li>提供DFS/BFS/后序等多种备选调度策略，并通过堆模拟器评估不同方案的最小内存需求。</li>
+<li>输入输出缓冲区别名优化（Optimize Input/Output Buffer Alias）</li>
+<li>利用输入输出别名配置，将参数直接作为输出返回或复用中间缓冲区，消除复制。</li>
+<li>内存放置注解转换（Convert Memory Placement to Internal Annotations）</li>
+<li>将前端自定义调用上的外部内存放置注解转换为内部注解，驱动后续传输或放置逻辑。</li>
+<li>运行时内存管理</li>
+<li>CPU连续段内存管理器：按代码/只读/读写段连续分配，支持最终保护与缓存失效。</li>
+<li>GPU主机内存池：固定大小环形空闲链表，复用主机侧临时缓冲区，降低频繁分配开销。</li>
+<li>编译后内存统计（Compiled Memory Stats）</li>
+<li>从分配集合中重新计算设备/主机、参数/输出/临时与别名的内存统计，区分可别名区域。</li>
+</ul>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L558-L625">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc#L34-L99">xla/pjrt/compiled_memory_stats.cc</a></p>
+<h2 id="_6">架构总览<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>下图展示了从HLO模块到执行路径的内存优化关键通路：内存空间传播与放置注解转换确保布局一致性；内存调度器与别名分析共同决定指令顺序与缓冲区复用；运行时内存管理器负责对齐与分配；编译后统计汇总设备/主机内存使用情况。</p>
+<pre class="mermaid"><code>sequenceDiagram
+participant Mod as "HloModule"
+participant MSP as "内存空间传播"
+participant MPA as "内存放置注解转换"
+participant HMS as "内存调度器"
+participant HAA as "Hlo别名分析"
+participant AI as "别名信息"
+participant HS as "堆模拟器"
+participant RT as "运行时内存管理器"
+Mod-&gt;&gt;MSP : 遍历参数/根/融合输入/输出叶形状
+MSP--&gt;&gt;Mod : 设置形状布局内存空间与拆分配置
+Mod-&gt;&gt;MPA : 转换外部内存放置注解为内部注解
+Mod-&gt;&gt;HMS : 构建点集分析与别名分析
+HMS-&gt;&gt;HAA : 使用别名信息
+HMS-&gt;&gt;AI : 使用别名信息
+HMS-&gt;&gt;HS : 评估不同调度的最小内存
+HS--&gt;&gt;HMS : 返回最优方案
+HMS--&gt;&gt;Mod : 写入HloSchedule
+Mod-&gt;&gt;RT : 按需分配/保护内存段</code></pre>
+<p><strong>图表来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/service/heap_simulator/heap_simulator.h">xla/service/heap_simulator/heap_simulator.h</a></p>
+<h2 id="_7">详细组件分析<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<h3 id="amemory-space-propagation">组件A：内存空间传播（Memory Space Propagation）<a class="headerlink" href="#amemory-space-propagation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>目标：在HLO形状布局中传播内存空间与拆分配置，确保参数、根节点、融合输入/输出之间的布局一致。</li>
+<li>关键流程</li>
+<li>构建数据流分析，遍历每个计算的参数与根形状的叶形状索引。</li>
+<li>对融合计算，遍历融合参数与融合表达式根的叶形状。</li>
+<li>递归传播：遇到动态更新切片、融合根/参数、嵌套融合时，向上/向下传播至调用者/被调用者。</li>
+<li>更新目标形状布局的内存空间与拆分配置，若发生变化则标记修改。</li>
+<li>复杂度与优化</li>
+<li>时间复杂度近似与值集与使用边数量线性相关；通过访问集合避免重复传播。</li>
+<li>与布局工具协作，保持拆分配置一致性，减少后续布局错误。</li>
+</ul>
+<pre class="mermaid"><code>flowchart TD
+Start(["开始"]) --&gt; BuildDF["构建数据流分析"]
+BuildDF --&gt; ForEachParam["遍历参数叶形状"]
+BuildDF --&gt; ForEachRoot["遍历根叶形状"]
+ForEachParam --&gt; Propagate["传播内存空间与拆分配置"]
+ForEachRoot --&gt; Propagate
+Propagate --&gt; DynUpdate{"是否动态更新切片?"}
+DynUpdate --&gt; |是| PropagateChild["传播到操作数0"]
+DynUpdate --&gt; |否| FusionCheck{"是否融合节点?"}
+FusionCheck --&gt; |是| PropagateFuse["传播到融合根/参数"]
+FusionCheck --&gt; |否| NextUse["处理下一个使用"]
+PropagateChild --&gt; NextUse
+PropagateFuse --&gt; NextUse
+NextUse --&gt; End(["结束"])</code></pre>
+<p><strong>图表来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L108-L184">xla/hlo/transforms/memory_space_propagation.cc</a></p>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L108-L184">xla/hlo/transforms/memory_space_propagation.cc</a></p>
+<h3 id="bmemory-scheduler">组件B：内存调度器（Memory Scheduler）<a class="headerlink" href="#bmemory-scheduler" title="Permanent link">&para;</a></h3>
+<ul>
+<li>目标：通过贪心列表调度最小化峰值内存，结合点集分析与堆模拟器评估不同序列。</li>
+<li>关键流程</li>
+<li>构建点集分析映射每个指令使用的逻辑缓冲区集合。</li>
+<li>计算每个逻辑缓冲区尚未调度的使用次数，统计“调度后可释放字节数”与“用户数量”作为优先级。</li>
+<li>处理特殊指令（如入/出站）以改善通信与I/O时间窗口。</li>
+<li>通过堆模拟器评估模块级最小内存需求，选择最优调度方案。</li>
+<li>数据结构与复杂度</li>
+<li>使用多映射按优先级组织就绪队列，O(logN)插入/删除。</li>
+<li>通过一次拓扑扫描与增量更新，整体接近线性复杂度。</li>
+</ul>
+<pre class="mermaid"><code>flowchart TD
+S(["开始"]) --&gt; PTS["构建点集分析"]
+PTS --&gt; Init["初始化缓冲区未调度使用计数"]
+Init --&gt; ReadyQ["构造就绪队列(按优先级)"]
+ReadyQ --&gt; Loop{"就绪队列非空?"}
+Loop --&gt; |是| PopBest["弹出最高优先级指令"]
+PopBest --&gt; Schedule["加入执行序列"]
+Schedule --&gt; DecUse["对使用的缓冲区计数减一"]
+DecUse --&gt; UpdateReady["更新相关指令入度/就绪状态"]
+UpdateReady --&gt; Adjust["必要时调整就绪队列优先级"]
+Adjust --&gt; Loop
+Loop --&gt; |否| HeapSim["堆模拟器评估最小内存"]
+HeapSim --&gt; Choose["选择最优调度方案"]
+Choose --&gt; E(["结束"])</code></pre>
+<p><strong>图表来源</strong>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L558-L625">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a></p>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L558-L625">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a></p>
+<h3 id="coptimize-inputoutput-buffer-alias">组件C：输入输出缓冲区别名优化（Optimize Input/Output Buffer Alias）<a class="headerlink" href="#coptimize-inputoutput-buffer-alias" title="Permanent link">&para;</a></h3>
+<ul>
+<li>目标：通过输入输出别名配置，使某些运算直接复用参数或中间缓冲区，避免复制。</li>
+<li>实现要点</li>
+<li>读取模块级输入输出别名配置，识别可别名的参数与输出。</li>
+<li>在满足数据依赖与生命周期约束的前提下，替换使用关系，减少临时缓冲区与拷贝。</li>
+<li>影响</li>
+<li>显著降低峰值内存与带宽占用，尤其在大模型与长序列任务中收益明显。</li>
+</ul>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a></p>
+<h3 id="dconvert-memory-placement-to-internal-annotations">组件D：内存放置注解转换（Convert Memory Placement to Internal Annotations）<a class="headerlink" href="#dconvert-memory-placement-to-internal-annotations" title="Permanent link">&para;</a></h3>
+<ul>
+<li>目标：将前端自定义调用上的外部内存放置注解转换为内部注解，便于后续传输或放置逻辑处理。</li>
+<li>关键流程</li>
+<li>遍历非融合计算中的指令，识别具有外部内存放置注解的自定义调用。</li>
+<li>根据注解类型映射到对应的内部自定义调用目标，替换使用并移除原指令。</li>
+<li>效果</li>
+<li>统一注解语义，简化后续传输与放置决策。</li>
+</ul>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a></p>
+<h3 id="e">组件E：运行时内存管理<a class="headerlink" href="#e" title="Permanent link">&para;</a></h3>
+<ul>
+<li>CPU连续段内存管理器</li>
+<li>按页对齐预留代码/只读/读写段空间，统一分配后分别设置保护属性，最后进行指令缓存失效。</li>
+<li>适合JIT代码生成与运行时内存布局。</li>
+<li>GPU主机内存池</li>
+<li>固定大小的主机内存块，内部维护元素指针队列，支持句柄式借用与自动归还，降低频繁分配成本。</li>
+</ul>
+<pre class="mermaid"><code>classDiagram
+class ContiguousSectionMemoryManager {
++reserveAllocationSpace(...)
++allocateCodeSection(...)
++allocateDataSection(...)
++finalizeMemory(...)
+}
+class HostMemoryPool {
++Create(executor, type)
++Acquire()
++Release(ptr)
+}
+class Handle {
++Handle(Handle&amp;&amp;)
++operator=(Handle&amp;&amp;)
++~Handle()
+}
+HostMemoryPool --&gt; Handle : "返回句柄"</code></pre>
+<p><strong>图表来源</strong>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a></p>
+<p><strong>章节来源</strong>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a></p>
+<h3 id="fcompiled-memory-stats">组件F：编译后内存统计（Compiled Memory Stats）<a class="headerlink" href="#fcompiled-memory-stats" title="Permanent link">&para;</a></h3>
+<ul>
+<li>目标：从分配集合中重新计算设备/主机、参数/输出/临时与别名的内存统计，区分可别名区域。</li>
+<li>关键逻辑</li>
+<li>遍历所有分配，校验默认着色行为（颜色=内存空间），累加各类尺寸。</li>
+<li>区分参数（含别名）、输出、预分配临时缓冲区的设备/主机用量。</li>
+<li>应用</li>
+<li>为性能分析与资源规划提供准确的内存视图，辅助定位内存热点。</li>
+</ul>
+<p><strong>章节来源</strong>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc#L34-L99">xla/pjrt/compiled_memory_stats.cc</a></p>
+<h2 id="_8">依赖关系分析<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<ul>
+<li>内存空间传播依赖数据流分析与布局工具，确保形状布局一致性。</li>
+<li>内存调度器依赖点集分析与别名分析，结合堆模拟器评估不同调度方案。</li>
+<li>输入输出缓冲区别名优化依赖模块级别名配置与别名信息。</li>
+<li>运行时内存管理器与编译后统计分别服务于执行期分配与编译期统计。</li>
+</ul>
+<pre class="mermaid"><code>graph LR
+MSP["内存空间传播"] --&gt; HAA["Hlo别名分析"]
+MSP --&gt; LUT["布局工具"]
+HMS["内存调度器"] --&gt; HAA
+HMS --&gt; AI["别名信息"]
+HMS --&gt; HS["堆模拟器"]
+OIOA["输入输出别名优化"] --&gt; HAA
+MPA["内存放置注解转换"] --&gt; HAA
+CSM["CPU连续段内存管理器"] --&gt; RT["执行路径"]
+HMP["GPU主机内存池"] --&gt; RT
+CMS["编译内存统计"] --&gt; RT</code></pre>
+<p><strong>图表来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc#L34-L99">xla/pjrt/compiled_memory_stats.cc</a></p>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L37-L106">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L400-L423">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a>
+- <a href="file://xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc#L113-L129">xla/hlo/transforms/convert_memory_placement_to_internal_annotations.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a>
+- <a href="file://xla/pjrt/compiled_memory_stats.cc#L34-L99">xla/pjrt/compiled_memory_stats.cc</a></p>
+<h2 id="_9">性能考量<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<ul>
+<li>内存空间传播</li>
+<li>通过布局一致性避免跨内存域访问带来的额外拷贝与同步。</li>
+<li>在融合嵌套场景中正确传播，减少布局不一致导致的回退与重排。</li>
+<li>内存调度</li>
+<li>贪心列表调度优先释放大缓冲区，显著降低峰值内存；对入/出站指令的特殊处理改善I/O时间窗。</li>
+<li>多策略对比（DFS/后序/列表）与堆模拟器评估，选择更优序列。</li>
+<li>别名与复制消除</li>
+<li>输入输出别名与参数别名可直接复用缓冲区，减少临时分配与带宽压力。</li>
+<li>运行时内存管理</li>
+<li>CPU连续段内存管理器按段分配与保护，减少碎片与保护开销。</li>
+<li>GPU主机内存池通过固定块与句柄借用，降低频繁分配与锁竞争。</li>
+</ul>
+<p>[本节为通用性能讨论，无需列出具体文件来源]</p>
+<h2 id="_10">故障排查指南<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
+<ul>
+<li>内存空间传播后布局不一致</li>
+<li>检查融合嵌套层级的传播是否完整，确认动态更新切片与融合根/参数的传播路径。</li>
+<li>参考：内存空间传播实现与递归传播逻辑。</li>
+<li>峰值内存过高</li>
+<li>检查是否存在大量标量指令未聚合成寄存器使用；确认列表调度是否启用且策略选择合理。</li>
+<li>参考：内存调度器的优先级与堆模拟器评估。</li>
+<li>参数/输出未别名</li>
+<li>检查输入输出别名配置是否正确，确认别名信息与别名分析结果。</li>
+<li>参考：输入输出缓冲区别名优化与别名分析。</li>
+<li>运行时分配失败</li>
+<li>CPU：检查连续段预留空间与对齐要求；确认最终保护与缓存失效步骤。</li>
+<li>GPU：检查主机内存池容量与并发借用上限。</li>
+<li>参考：CPU连续段内存管理器与GPU主机内存池。</li>
+</ul>
+<p><strong>章节来源</strong>
+- <a href="file://xla/hlo/transforms/memory_space_propagation.cc#L108-L184">xla/hlo/transforms/memory_space_propagation.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc#L558-L625">xla/hlo/transforms/simplifiers/hlo_memory_scheduler.cc</a>
+- <a href="file://xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc">xla/hlo/transforms/simplifiers/optimize_input_output_buffer_alias.cc</a>
+- <a href="file://xla/backends/cpu/codegen/contiguous_section_memory_manager.cc#L57-L114">xla/backends/cpu/codegen/contiguous_section_memory_manager.cc</a>
+- <a href="file://xla/backends/gpu/runtime/host_memory_pool.cc#L35-L55">xla/backends/gpu/runtime/host_memory_pool.cc</a></p>
+<h2 id="_11">结论<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
+<p>XLA在HLO层面通过内存空间传播、内存调度、别名分析与输入输出缓冲区别名优化，形成一套完整的内存优化体系。配合运行时内存管理器与编译后统计，能够在不牺牲正确性的前提下显著降低设备内存占用、减少带宽压力并提升执行效率。对于后续代码生成，这些优化直接影响缓冲区分配、布局与指令顺序，从而提升整体吞吐与稳定性。</p>
+<p>[本节为总结性内容，无需列出具体文件来源]</p>
+<h2 id="_12">附录<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
+<ul>
+<li>HLO示例：内存优化前后对比（概念性说明）</li>
+<li>优化前：存在多个临时缓冲区与复制，峰值内存高，访问模式分散。</li>
+<li>优化后：通过内存空间传播统一布局，通过内存调度最小化峰值，通过别名消除复制，访问模式更局部化。</li>
+<li>关键算法实现路径</li>
+<li>内存空间传播：见“内存空间传播”章节。</li>
+<li>内存调度：见“内存调度器”章节。</li>
+<li>别名分析与信息：见“分析层”文件。</li>
+<li>运行时内存管理：见“运行时内存管理”章节。</li>
+<li>编译后统计：见“编译后内存统计”章节。</li>
+</ul>
+<p>[本节为概念性说明，无需列出具体文件来源]</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
